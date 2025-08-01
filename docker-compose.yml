@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  app:
+    build:
+      args:
+        user: balinux
+        uid: 1000
+      context: ./.docker
+      dockerfile: ./dockerfiles/app.Dockerfile
+    image: renthouse-be
+    container_name: renthouse-be-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - renthouse-be-network
+
+  db:
+    image: mysql:8.0
+    container_name: renthouse-be-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./.docker/db:/var/lib/mysql
+    ports:
+      - 33060:3306
+    networks:
+      - renthouse-be-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: renthouse-be-nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./:/var/www
+      - ./.docker/nginx/:/etc/nginx/conf.d/
+    networks:
+      - renthouse-be-network
+
+networks:
+  renthouse-be-network:
+    driver: bridge
