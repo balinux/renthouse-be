@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('sqft')->default(0);
             $table->unsignedSmallInteger('wifi_speed')->default(0);
             $table->unsignedSmallInteger('max_person')->default(0);
-            $table->unsignedSmallInteger('price_per_day')->default(0);
+            $table->decimal('price_per_day', 10, 2)->default(0); 
             $table->longText('attachments')->nullable();
             $table->unsignedSmallInteger('full_support_available')->default(0);
             $table->unsignedSmallInteger('gym_area_available')->default(0);
