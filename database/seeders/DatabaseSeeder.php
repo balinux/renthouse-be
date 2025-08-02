@@ -23,6 +23,13 @@ class DatabaseSeeder extends Seeder
             'password' => '123balinux',
         ]);
 
+        User::factory()->create([
+            'name' => 'user',
+            'email' => 'user@gmail.com',
+            'role' => 'customer',
+            'password' => '123balinux',
+        ]);
+
         Listing::factory(10)->create();
     }
 }
