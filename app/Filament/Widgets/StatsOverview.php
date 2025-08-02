@@ -2,17 +2,38 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Listing;
+use App\Models\Transaction;
+use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Number;
 
 class StatsOverview extends BaseWidget
 {
+
+    private function getPercentage(int $from, int $to): int
+    {
+        return $to - $from / ($to + $from) * 100;
+    }
+
     protected function getStats(): array
     {
+        $newListing = Listing::whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year)->count();
+        $transactions = Transaction::whereStatus('approved')->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+        $previousMonthTransactions = Transaction::whereStatus('approved')->whereMonth('created_at', Carbon::now()->subMonth()->month)->whereYear('created_at', Carbon::now()->subMonth()->year);
+        $transactionsPercentage = $this->getPercentage($previousMonthTransactions->count(), $transactions->count());
+        $revenuePercentage = $this->getPercentage($previousMonthTransactions->sum('total_price'), $transactions->sum('total_price'));
         return [
-            Stat::make('Unique views', '192.1k'),
-            Stat::make('Bounce rate', '21%'),
-            Stat::make('Average time on page', '3:12'),
+            Stat::make('New Listing this month', $newListing),
+            Stat::make('Transactions this month', $transactions->count())
+                ->description($transactionsPercentage > 0 ? 'up ' . $transactionsPercentage . '%' : 'down ' . $transactionsPercentage . '%')
+                ->icon($transactionsPercentage > 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
+                ->color($transactionsPercentage > 0 ? 'success' : 'danger'),
+            Stat::make('Revenue this month', Number::currency($transactions->sum('total_price'),'IDR'))
+                ->description($revenuePercentage > 0 ? 'up ' . $revenuePercentage . '%' : 'down ' . $revenuePercentage . '%')
+                ->icon($revenuePercentage > 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
+                ->color($revenuePercentage > 0 ? 'success' : 'danger'),
         ];
     }
 }
