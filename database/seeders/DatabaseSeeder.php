@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Listing;
 use App\Models\User;
+use App\Models\Transaction;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -30,6 +32,17 @@ class DatabaseSeeder extends Seeder
             'password' => '123balinux',
         ]);
 
-        Listing::factory(10)->create();
+        $user = User::factory(10)->create();
+        $listing = Listing::factory(10)->create();
+
+        Transaction::factory(10)
+            ->state(
+                new Sequence(
+                    fn(Sequence $sequence) => [
+                        'user_id' => $user->random()->id,
+                        'listing_id' => $listing->random()->id,
+                    ],
+                )
+            )->create();
     }
 }
