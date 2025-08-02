@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Set;
+use Illuminate\Support\Str;
 
 class ListingResource extends Resource
 {
@@ -25,10 +27,11 @@ class ListingResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('title')
                     ->required()
+                    ->afterStateUpdated(fn(Set $set, ?string $state) => $set('slug', Str::slug($state)))
+                    ->live(debounce:250)
                     ->maxLength(255),
                 Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(255),
+                    ->disabled(),
                 Forms\Components\Textarea::make('description')
                     ->required()
                     ->columnSpanFull(),
@@ -51,24 +54,20 @@ class ListingResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(0),
+                Forms\Components\Checkbox::make('full_support_available')
+                    ->required()
+                    ->default(0),
+                Forms\Components\Checkbox::make('gym_area_available')
+                    ->required()
+                    ->default(0),
+                Forms\Components\Checkbox::make('mini_cafe_available')
+                    ->required()
+                    ->default(0),
+                Forms\Components\Checkbox::make('cinema_available')
+                    ->required()
+                    ->default(0),
                 Forms\Components\Textarea::make('attachments')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('full_support_available')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('gym_area_available')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('mini_cafe_available')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('cinema_available')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
             ]);
     }
 
