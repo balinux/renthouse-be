@@ -6,6 +6,7 @@ use App\Filament\Resources\ListingResource\Pages;
 use App\Filament\Resources\ListingResource\RelationManagers;
 use App\Models\Listing;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -55,19 +56,22 @@ class ListingResource extends Resource
                     ->numeric()
                     ->default(0),
                 Forms\Components\Checkbox::make('full_support_available')
-                    ->required()
                     ->default(0),
                 Forms\Components\Checkbox::make('gym_area_available')
-                    ->required()
                     ->default(0),
                 Forms\Components\Checkbox::make('mini_cafe_available')
-                    ->required()
                     ->default(0),
                 Forms\Components\Checkbox::make('cinema_available')
-                    ->required()
                     ->default(0),
-                Forms\Components\Textarea::make('attachments')
-                    ->columnSpanFull(),
+                FileUpload::make('attachments')
+                    ->directory('listing')
+                    ->image()
+                    ->openable()
+                    ->multiple()
+                    ->reorderable()
+                    ->appendFiles()
+                    ->columnSpanFull()
+                    ->required(),
             ]);
     }
 
