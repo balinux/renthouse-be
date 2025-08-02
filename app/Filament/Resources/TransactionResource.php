@@ -7,8 +7,11 @@ use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -88,7 +91,13 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('total_price')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('status')
+                ->badge()
+                ->color(fn(string $state): string => match ($state) {
+                    'waiting' => 'warning',
+                    'approved' => 'success',
+                    'canceled' => 'danger',
+                }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -99,10 +108,49 @@ class TransactionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                ->options([
+                    'waiting' => 'Waiting',
+                    'approved' => 'Approved',
+                    'canceled' => 'Canceled',
+                ])
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
+                Action::make('Approve')
+                ->action(function (Transaction $record) {
+                    $record->status = 'approved';
+                    $record->save();
+
+                    Notification::make()
+                        ->title('Transaction Approved')
+                        ->body('The transaction has been approved.')
+                        ->success()
+                        ->send();
+                })
+                ->button()
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('Approve Transaction')
+                ->modalDescription('Are you sure you want to approve this transaction?')
+                ->hidden(fn(Transaction $record) => $record->status !== 'waiting'),
+                Action::make('Cancel')
+                ->button()
+                ->color('danger')
+                ->action(function (Transaction $record) {
+                    $record->status = 'canceled';
+                    $record->save();
+
+                    Notification::make()
+                        ->title('Transaction Canceled')
+                        ->body('The transaction has been canceled.')
+                        ->success()
+                        ->send();
+                })
+                ->requiresConfirmation()
+                ->modalHeading('Cancel Transaction')
+                ->modalDescription('Are you sure you want to cancel this transaction?')
+                ->hidden(fn(Transaction $record) => $record->status !== 'waiting'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
