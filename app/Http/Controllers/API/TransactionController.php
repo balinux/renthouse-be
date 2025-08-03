@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
@@ -25,14 +26,41 @@ class TransactionController extends Controller
                         $subquery->where('start_date', '<', $request->start_date)
                             ->where('end_date', '>', $request->end_date);
                     });
-            });
+            })->count();
+            
         if ($runningTransactonCount >= $listing->max_person) {
             throw new HttpResponseException(response()->json([
                 'success' => false,
                 'message' => 'Booking is not available',
-                'data' => null
             ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY));
         }
         return true;
+    }
+
+    public function isAvailable(Store $request){
+        $this->_checkBookingAvailability($request);
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking is available',
+        ], JsonResponse::HTTP_OK);
+    }
+
+    public function store(Store $request){
+        $this->_checkBookingAvailability($request);
+
+        $transaction = Transaction::create([
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'listing_id' => $request->listing_id,
+            'user_id' => Auth::user()->id,
+        ]);
+
+        $transaction->Listing;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction created successfully',
+            'data' => $transaction
+        ], JsonResponse::HTTP_OK);
     }
 }
