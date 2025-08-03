@@ -13,6 +13,17 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
+
+    // get all transaction
+    public function index(Request $request){
+        $transactions = Transaction::with('listing')->whereUserId(Auth::user()->id)->paginate(10);
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction list',
+            'data' => $transactions
+        ], JsonResponse::HTTP_OK);
+    }
+
     //melakukan pengecekan apakah jadwal boking tersedia atau tidak
     private function _checkBookingAvailability(Store $request)
     {
