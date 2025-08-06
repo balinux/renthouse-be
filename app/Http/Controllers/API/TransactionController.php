@@ -83,7 +83,7 @@ class TransactionController extends Controller
             ], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $transaction->Listing;
+        $transaction->load('listing');
 
         return response()->json([
             'success'=> true,
